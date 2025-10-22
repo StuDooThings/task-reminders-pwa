@@ -31,22 +31,14 @@ jobs:
         ls -la dist/
         echo "Build completed successfully"
 
-    - name: Setup Java
+    - name: Setup Java JDK
       uses: actions/setup-java@v4
       with:
-        distribution: 'zulu'
+        distribution: 'temurin'
         java-version: '17'
 
     - name: Setup Android SDK
       uses: android-actions/setup-android@v3
-      with:
-        cmdline-tools-version: '9477386'
-        accept-android-sdk-licenses: true
-        packages: |
-          platform-tools
-          platforms;android-34
-          build-tools;34.0.0
-          ndk;25.2.9519653
 
     - name: Install Capacitor CLI
       run: npm install -g @capacitor/cli
@@ -60,17 +52,15 @@ jobs:
     - name: Sync Capacitor
       run: npx cap sync android
 
-    - name: Set Gradle permissions
+    - name: Make gradlew executable
       run: chmod +x android/gradlew
 
-    - name: Build APK
-      run: |
-        cd android
-        ./gradlew clean
-        ./gradlew assembleDebug --stacktrace --info
+    - name: Build debug APK
+      working-directory: android
+      run: ./gradlew assembleDebug --no-daemon --stacktrace
 
     - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
-        name: app-debug
+        name: app-debug-apk
         path: android/app/build/outputs/apk/debug/app-debug.apk
