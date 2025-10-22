@@ -26,6 +26,11 @@ jobs:
     - name: Build PWA
       run: npm run build
 
+    - name: Verify build output
+      run: |
+        ls -la dist/
+        echo "Build completed successfully"
+
     - name: Setup Java
       uses: actions/setup-java@v4
       with:
@@ -34,6 +39,16 @@ jobs:
 
     - name: Setup Android SDK
       uses: android-actions/setup-android@v3
+      with:
+        api-level: 34
+        build-tools: '34.0.0'
+        cmake: '3.22.1'
+        ndk: '25.2.9519653'
+
+    - name: Set Android SDK environment
+      run: |
+        echo "ANDROID_HOME=${ANDROID_HOME}" >> $GITHUB_ENV
+        echo "ANDROID_SDK_ROOT=${ANDROID_SDK_ROOT}" >> $GITHUB_ENV
 
     - name: Install Capacitor CLI
       run: npm install -g @capacitor/cli
@@ -47,11 +62,14 @@ jobs:
     - name: Sync Capacitor
       run: npx cap sync android
 
+    - name: Set Gradle permissions
+      run: chmod +x android/gradlew
+
     - name: Build APK
       run: |
         cd android
-        chmod +x ./gradlew
-        ./gradlew assembleDebug
+        ./gradlew clean
+        ./gradlew assembleDebug --stacktrace --info
 
     - name: Upload APK
       uses: actions/upload-artifact@v4
